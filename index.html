@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Typing Practice</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap');
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #0e0e0e;
+    color: #f0f0f0;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  h1 {
+    color: #ffd700;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+  }
+
+  textarea {
+    width: 80%;
+    height: 100px;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 10px;
+    outline: none;
+    resize: none;
+    margin-bottom: 20px;
+  }
+
+  button {
+    background: linear-gradient(135deg, #ffd700, #c0a000);
+    color: #111;
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  pre {
+    width: 80%;
+    min-height: 200px;
+    background: #141414;
+    color: #aaa;
+    font-size: 1rem;
+    border-radius: 10px;
+    padding: 20px;
+    white-space: pre-wrap;
+    position: relative;
+    overflow-y: auto;
+    text-align: left;
+  }
+
+  /* Cursor */
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: #ffd700;
+    animation: blink 1s step-start infinite;
+    vertical-align: bottom;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .correct { color: #9eff9e; } /* Light green for correct */
+  .incorrect { color: #ff4d4d; }
+</style>
+</head>
+<body>
+
+<h1>Code Typing Practice</h1>
+<textarea id="codeInput" placeholder="Paste your code here..."></textarea>
+<button id="startBtn">Start Typing</button>
+
+<pre id="codeDisplay"></pre>
+
+<script>
+  const codeInput = document.getElementById('codeInput');
+  const startBtn = document.getElementById('startBtn');
+  const codeDisplay = document.getElementById('codeDisplay');
+
+  let codeToType = '';
+  let typed = '';
+  let cursorPos = 0;
+  let cursor = document.createElement('span');
+
+  cursor.classList.add('cursor');
+
+  startBtn.addEventListener('click', () => {
+    codeToType = codeInput.value.replace(/\t/g, '    ');
+    if (!codeToType.trim()) return alert('Please paste some code first!');
+    codeInput.style.display = 'none';
+    startBtn.style.display = 'none';
+    renderCode();
+    document.addEventListener('keydown', handleTyping);
+  });
+
+  function renderCode() {
+    codeDisplay.innerHTML = '';
+    for (let i = 0; i < codeToType.length; i++) {
+      const span = document.createElement('span');
+      span.textContent = codeToType[i] === '\n' ? '\n' : codeToType[i];
+      codeDisplay.appendChild(span);
+    }
+    insertCursor();
+  }
+
+  function insertCursor() {
+    const spans = codeDisplay.querySelectorAll('span:not(.cursor)');
+    cursor.remove();
+    if (cursorPos < spans.length) {
+      spans[cursorPos].before(cursor);
+    } else {
+      codeDisplay.appendChild(cursor);
+    }
+    cursor.scrollIntoView({ block: 'nearest' });
+  }
+
+  function handleTyping(e) {
+    e.preventDefault();
+    if (e.key.length > 1 && e.key !== 'Enter' && e.key !== 'Backspace') return;
+
+    if (e.key === 'Backspace') {
+      if (typed.length > 0) {
+        typed = typed.slice(0, -1);
+        cursorPos = Math.max(0, cursorPos - 1);
+      }
+    } else if (e.key === 'Enter') {
+      typed += '\n';
+      cursorPos++;
+    } else {
+      typed += e.key;
+      cursorPos++;
+    }
+
+    updateColors();
+    insertCursor();
+  }
+
+  function updateColors() {
+    const spans = codeDisplay.querySelectorAll('span:not(.cursor)');
+    spans.forEach((span, i) => {
+      span.className = '';
+      if (i < typed.length) {
+        span.classList.add(typed[i] === codeToType[i] ? 'correct' : 'incorrect');
+      }
+    });
+  }
+
+  // Prevent spacebar scroll
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target === document.body) e.preventDefault();
+  });
+</script>
+
+</body>
+</html>
